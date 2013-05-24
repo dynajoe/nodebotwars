@@ -4,8 +4,17 @@
   "description": "A server that orchestrates the simulation of wars between bots.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha test",
     "start": "node server.js"
   },
-  "license": "BSD"
+  "license": "BSD",
+  "dependencies": {
+    "should": "~1.2.2",
+    "express": "~3.2.5",
+    "request": "~2.21.0",
+    "hapi": "~1.3.0",
+    "restify": "~2.5.1",
+    "async": "~0.2.8",
+    "underscore": "~1.4.4"
+  }
 }
