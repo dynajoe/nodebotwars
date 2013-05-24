@@ -10,11 +10,19 @@ var Bot = function (adapter, config) {
 
 Bot.prototype.do = function (actions) {
    actions.forEach((function (a) {
-
       if (a.name === 'move') {
          this.energy = this.energy - (a.distance / this.config.energyPerDistance);
+         
+         var direction = a.direction % 360;
+         if (direction < 0) {
+            direction = 360 + direction;
+         }
+
+         var radians = direction * (Math.PI / 180);
+
+         this.x = this.x + a.distance * Math.cos(radians);
+         this.y = this.y - a.distance * Math.sin(radians);
       }
-      
    }).bind(this));
 };
 

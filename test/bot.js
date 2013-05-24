@@ -14,12 +14,21 @@ describe('Bot', function () {
 	describe('when a bot moves', function () {
 		beforeEach(function () {
 			this.startEnergy = this.bot.energy;
-			this.distance = 10;
-			this.bot.do([{ name: 'move', direction: 45, distance: this.distance }]);
+			this.distance = Math.sqrt(8);
+			this.direction = -45;
+			this.bot.do([{ name: 'move', direction: this.direction, distance: this.distance }]);
 		});
 
 		it('should decrease in energy', function () {
 			this.bot.energy.should.equal(this.startEnergy - (this.distance / botConfiguration.energyPerDistance));
+		});
+
+		it('should move to the appropriate x location', function () {
+			this.bot.x.should.be.approximately(2, 1e-3);
+		});
+
+		it('should move to the appropriate y location', function () {
+			this.bot.y.should.be.approximately(2, 1e-3);
 		});
 	});
 });
