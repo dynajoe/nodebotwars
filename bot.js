@@ -1,10 +1,21 @@
-var Bot = function (adapter) {
+var Bot = function (adapter, config) {
+   this.config = config;
    this.adapter = adapter;
    this.level = 1;
    this.x = 0;
    this.y = 0;
    this.radius = 20;
    this.energy = 100;
+};
+
+Bot.prototype.do = function (actions) {
+   actions.forEach((function (a) {
+
+      if (a.name === 'move') {
+         this.energy = this.energy - (a.distance / this.config.energyPerDistance);
+      }
+      
+   }).bind(this));
 };
 
 Bot.prototype.tick = function (state, cb) {

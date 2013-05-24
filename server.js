@@ -68,6 +68,10 @@ var bots = [];
 bots.push(new Bot(new HttpAdapter('http://localhost:8080/')));
 bots.push(new Bot(new HttpAdapter('http://localhost:8081/')));
 
+tick({}, bots,1,1,1, function () {
+   console.log('finished a round')
+});
+
 setInterval(function () {
 
    tick({}, bots,1,1,1, function () {
