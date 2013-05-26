@@ -2,7 +2,7 @@
   "name": "nodebotwars",
   "version": "0.0.1",
   "description": "A server that orchestrates the simulation of wars between bots.",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
     "test": "mocha test",
     "start": "node server.js"

@@ -1,81 +1,51 @@
-var async = require('async');
-var _ = require('underscore');
-var maxWait = 5000;
-var Bot = require('./bot');
-var HttpAdapter = require('./http_adapter');
+var EventEmitter = require('events').EventEmitter;
+var net = require('net');
 
-var doActions = function (actions) {
-   //do you have enough energy to do that?
-   //Ensure bots are performing legal actions
-   //Do all the things each bot asked / Update the world.
-   //also subtract a default amount of energy
+var handleMessage = function (id, data) {
+  try {
+    data = JSON.parse(data.toString());
+  } catch (e){ 
+    return; 
+  }
+
+  if (!data.event || (typeof data.args) != 'object') {
+    return;
+  }
+
+  this.emit('input', { id: id, event: data.event, args: data.args });
 };
 
-var tick = function (world, bots, round, totalTime, elapsedTime, done) {
+var Server = function () {
+  this.clients = {};
+   
+  this.server = net.createServer((function (socket) {
+    socket.id = new Date().getTime();
+    this.clients[socket.id] = socket;
+    this.emit('player-connected', socket.id);
 
-   var state = {
-      time: totalTime,
-      elapsed: elapsedTime,
-      round: round,
-      world: world,
-      bots: bots.slice(0)
-   };
+    socket.on('end', (function () {
+      delete this.clients[socket.id];
+      this.emit('player-disconnected', socket.id);
+    }).bind(this));
 
-   async.map(bots, function (bot, cb) { 
-      var boundTick = bot.tick.bind(bot);
-      var timedOut = false;
-      var done = false;
-      boundTick(state, function (actions) {
-         done = true;
-         if (!timedOut) cb(null,  { bot: bot, actions: actions });
-      });
+    socket.on('data', (function (data) {
+      this.handleMessage.bind(this)(socket.id, data);
+    }).bind(this));
 
-      setTimeout((function (b) {
-         if (done) return;
-         timedOut = true;
-         cb('timeout', { bot: b, actions: [] });
-      }).bind(this, bot), maxWait);
-   }
-   , function (err, results) { 
+  }).bind(this));
+};
 
-      var bots = doActions(results); 
-      var groups = _.groupBy(bots, function (b) { return (b.energy > 0) ? 'alive' : 'dead'; });
-      var deadBots = groups['dead'] || [];
-      var livingBots = groups['alive'] || [];
+Server.prototype = Object.create(EventEmitter.prototype);
 
-      var endGameFor = function (bots, reason) {
-         bots.forEach(function (b) {
-            b.notify('gameover', reason);
-         });         
-      };
+Server.prototype.listen = function (port) {
+  this.server.listen(port);
+  console.log('Game server listening on port: ' + port);
+};
 
-      if (livingBots.length == 0) { //Everyone died this round, LOL!
-         endGameFor(deadBots, 'draw');
-      } 
-      else {
-         if (livingBots.length == 1) { // WE HAVE A WINNER!
-            endGameFor(livingBots, 'win');
-         }
+Server.prototype.send = function (id, event, data) {
+  if (clients[id]) {
+    clients[id].write(JSON.stringify({ event: event, args: data }));
+  }
+};
 
-         endGameFor(deadBots, 'dead'); //SUCK IT LOSERS!
-      }
-
-      done(livingBots);
-   });
-}
-
-var bots = [];
-bots.push(new Bot(new HttpAdapter('http://localhost:8080/')));
-bots.push(new Bot(new HttpAdapter('http://localhost:8081/')));
-
-tick({}, bots,1,1,1, function () {
-   console.log('finished a round')
-});
-
-setInterval(function () {
-
-   tick({}, bots,1,1,1, function () {
-      console.log('finished a round')
-   });
-
-}, 5000);
+module.exports = Server;
