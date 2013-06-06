@@ -53,9 +53,9 @@ var loop = {};
   }
 
   gameMaster.update.call(gameMaster, timeInfo);
-})();
+})(new Date().getTime());
 
-require('./routes/index')(app);
+require('./controllers/index')(app);
 
 gameServer.listen(3000);
 server.listen(8000);
